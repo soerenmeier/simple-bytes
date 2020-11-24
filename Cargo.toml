@@ -3,9 +3,11 @@ name = "simple-bytes"
 description = "A small and easy crate to mutate or read u8 slices"
 version = "0.1.1"
 authors = ["Sören Meier <soeren@s-me.ch>"]
-homepage = "https://fire-lib.com/"
+repository = "https://github.com/soerenmeier/simple-bytes"
 edition = "2018"
 license = "MIT OR Apache-2.0"
+keywords = ["bytes", "read", "write", "io"]
+categories = ["network-programming", "data-structures"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
