@@ -1,0 +1,12 @@
+[package]
+name = "simple-bytes"
+description = "A small and easy crate to mutate or read u8 slices"
+version = "0.1.1"
+authors = ["Sören Meier <soeren@s-me.ch>"]
+homepage = "https://fire-lib.com/"
+edition = "2018"
+license = "MIT OR Apache-2.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
