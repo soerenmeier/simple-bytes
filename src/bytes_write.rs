@@ -4,39 +4,40 @@ use crate::Bytes;
 
 macro_rules! write_fn {
 	($name:ident, $type:ident) => (
+		write_fn!($name, $type, stringify!($type));
+	);
+	($name:ident, $type:ident, $type_str:expr) => {
 		#[inline]
+		#[doc = "Writes an `"]
+		#[doc = $type_str]
+		#[doc = "`."]
+		/// 
+		/// ## Panics
+		/// If there aren't enough remaining bytes left.
 		fn $name(&mut self, num: $type) {
 			let bytes = num.to_be_bytes();
 			self.write(&bytes);
 		}
-	)
+	}
 }
 
-/// Write bytes or numbers
-///
-/// ## Panics
-/// See safety notes in crate root
-///
+/// Write bytes or numbers.
 pub trait BytesWrite {
 
-	/// returns the entire slice as mut
+	/// Returns the entire slice mutably.
 	fn as_mut(&mut self) -> &mut [u8];
 
-	/// returns the entire slice as a bytes type with a position of 0
+	/// Returns the entire slice as a bytes struct
+	/// setting the position of the new Bytes to `0`.
 	fn as_bytes(&self) -> Bytes<'_>;
 
+	/// Returns the remaining bytes mutably.
 	fn remaining_mut(&mut self) -> &mut [u8];
 
-	/// Sets the internal position
-	///
-	/// called seek_mut and not seek to cause no confusion between BytesRead::seek
-	/// and this implementation
-	///
-	/// # Panics
-	/// if pos >= self.len()
-	/// this is implementation dependent, BytesOwned never panics
-	fn seek_mut(&mut self, pos: usize);
-
+	/// Writes a slice.
+	/// 
+	/// ## Panics
+	/// If there aren't enough remaining bytes left.
 	fn write(&mut self, slice: &[u8]);
 
 	write_fn!(write_u8, u8);

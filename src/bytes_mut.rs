@@ -1,16 +1,15 @@
 
-use crate::{ Bytes, BytesWrite };
+use crate::{Bytes, Cursor, BytesRead, BytesWrite, BytesSeek};
 
 /// A mutable slice wrapper that implements BytesWrite
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct BytesMut<'a> {
-	position: usize,
-	inner: &'a mut [u8]
+	inner: Cursor<&'a mut [u8]>
 }
 
 impl<'a> BytesMut<'a> {
 
-	/// You should probably use
+	/// You should probably use:
 	///
 	/// ```
 	/// # use simple_bytes::BytesMut;
@@ -21,16 +20,30 @@ impl<'a> BytesMut<'a> {
 	/// ```
 	///
 	pub fn new(position: usize, inner: &'a mut [u8]) -> Self {
-		Self { position, inner }
+		let mut cursor = Cursor::new(inner);
+		cursor.seek(position);
+		Self { inner: cursor }
 	}
 
-	/// returns the full slice len
-	pub fn len(&self) -> usize {
-		self.inner.len()
+}
+
+impl BytesRead for BytesMut<'_> {
+
+	#[inline]
+	fn as_slice(&self) -> &[u8] {
+		self.inner.as_slice()
 	}
 
-	pub fn remaining_len(&self) -> usize {
-		self.inner.len() - self.position
+	fn remaining(&self) -> &[u8] {
+		self.inner.remaining()
+	}
+
+	fn read(&mut self, len: usize) -> &[u8] {
+		self.inner.read(len)
+	}
+
+	fn peek(&self, len: usize) -> Option<&[u8]> {
+		self.inner.peek(len)
 	}
 
 }
@@ -39,36 +52,34 @@ impl BytesWrite for BytesMut<'_> {
 
 	#[inline]
 	fn as_mut(&mut self) -> &mut [u8] {
-		self.inner
+		self.inner.as_mut()
 	}
 
 	#[inline]
 	fn as_bytes(&self) -> Bytes<'_> {
-		(&*self.inner).into()
+		self.inner.as_bytes()
 	}
 
 	#[inline]
 	fn remaining_mut(&mut self) -> &mut [u8] {
-		&mut self.inner[self.position..]
-	}
-
-	/// Sets the internal position
-	///
-	/// # Panics
-	/// if pos >= self.len()
-	#[inline]
-	fn seek_mut(&mut self, pos: usize) {
-		assert!(pos < self.len(), "new position exceeds slice length");
-		self.position = pos;
+		self.inner.remaining_mut()
 	}
 
 	#[inline]
 	fn write(&mut self, slice: &[u8]) {
-		let end = self.position + slice.len();
-		self.inner[self.position..end].copy_from_slice(slice);
-		self.position = end;
+		self.inner.write(slice)
 	}
 
+}
+
+impl BytesSeek for BytesMut<'_> {
+	/// Sets the internal position.
+	/// 
+	/// ## Panics
+	/// If the position exceeds the slice.
+	fn seek(&mut self, pos: usize) {
+		self.inner.seek(pos)
+	}
 }
 
 impl<'a> From<&'a mut [u8]> for BytesMut<'a> {
@@ -81,8 +92,7 @@ impl<'a> From<&'a mut [u8]> for BytesMut<'a> {
 #[cfg(test)]
 mod tests {
 
-	use super::BytesMut;
-	use crate::BytesWrite;
+	use super::*;
 	use crate::BytesRead;
 
 	#[test]
@@ -96,22 +106,22 @@ mod tests {
 		bytes.write(&to_write);
 		bytes.write(&to_write);
 
-		assert_eq!(bytes.remaining_len(), 100 - 20);
-		assert_eq!(bytes.remaining_len(), bytes.remaining_mut().len());
+		assert_eq!(bytes.remaining().len(), 100 - 20);
+		assert_eq!(bytes.remaining().len(), bytes.remaining_mut().len());
 
 		assert_eq!(&bytes.as_mut()[..10], to_write.as_slice());
-		assert_eq!(&bytes.as_bytes().peek(20)[10..], to_write.as_slice());
+		assert_eq!(&bytes.as_bytes().peek(20).unwrap()[10..], to_write.as_slice());
 
 		bytes.write_u8(5u8);
 		bytes.write_u16(20u16);
 
-		assert_eq!(bytes.remaining_len(), 100 - 23);
+		assert_eq!(bytes.remaining_mut().len(), 100 - 23);
 
 		// seek
-		bytes.seek_mut(99);
+		bytes.seek(99);
 		// should now write to the 99 byte // this is the last byte
 		bytes.write_u8(5u8);
-		assert_eq!(bytes.remaining_len(), 0);
+		assert_eq!(bytes.remaining_mut().len(), 0);
 		assert_eq!(bytes.as_mut()[99], 5u8);
 
 	}
@@ -124,7 +134,7 @@ mod tests {
 		let mut bytes = BytesMut::from(&mut bytes[..]);
 
 		// seek
-		bytes.seek_mut(100);
+		bytes.seek(100);
 
 		bytes.write_u8(5u8);
 	}

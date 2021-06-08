@@ -1,16 +1,15 @@
 
-use crate::BytesRead;
+use crate::{BytesRead, BytesSeek, Cursor};
 
-/// A slice wrapper that implements BytesRead
+/// A slice wrapper that implements BytesRead.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Bytes<'a> {
-	position: usize,// always points to the new position
-	inner: &'a [u8]
+	inner: Cursor<&'a [u8]>
 }
 
 impl<'a> Bytes<'a> {
 
-	/// You should probably use
+	/// You should probably use:
 	///
 	/// ```
 	/// # use simple_bytes::Bytes;
@@ -21,7 +20,9 @@ impl<'a> Bytes<'a> {
 	/// ```
 	///
 	pub fn new(position: usize, inner: &'a [u8]) -> Self {
-		Self { position, inner }
+		let mut cursor = Cursor::new(inner);
+		cursor.seek(position);
+		Self { inner: cursor }
 	}
 
 }
@@ -31,36 +32,35 @@ impl BytesRead for Bytes<'_> {
 	// returns the full slice
 	#[inline]
 	fn as_slice(&self) -> &[u8] {
-		self.inner
+		self.inner.as_slice()
 	}
 
 	#[inline]
 	fn remaining(&self) -> &[u8] {
-		 &self.inner[self.position..]
-	}
-
-	#[inline]
-	fn seek(&mut self, pos: usize) {
-		assert!(pos < self.len(), "new position exceeds slice length");
-		self.position = pos;
+		 self.inner.remaining()
 	}
 
 	#[inline]
 	fn read(&mut self, len: usize) -> &[u8] {
-		let n_len = self.position + len;
-		let slice = &self.inner[self.position..n_len];
-		self.position = n_len;// stores new "next" position
-		slice
+		self.inner.read(len)
 	}
 
 	#[inline]
-	fn peek(&self, len: usize) -> &[u8] {
-		let n_len = self.position + len;
-		&self.inner[self.position..n_len]
+	fn peek(&self, len: usize) -> Option<&[u8]> {
+		self.inner.peek(len)
 	}
 
 }
 
+impl BytesSeek for Bytes<'_> {
+	/// Sets the internal position.
+	/// 
+	/// ## Panics
+	/// If the position exceeds the slice.
+	fn seek(&mut self, pos: usize) {
+		self.inner.seek(pos)
+	}
+}
 
 impl<'a> From<&'a [u8]> for Bytes<'a> {
 	fn from(s: &'a [u8]) -> Self {
@@ -71,8 +71,7 @@ impl<'a> From<&'a [u8]> for Bytes<'a> {
 #[cfg(test)]
 mod tests {
 
-	use super::Bytes;
-	use crate::BytesRead;
+	use super::*;
 
 	#[test]
 	fn read() {
@@ -81,17 +80,17 @@ mod tests {
 		let mut bytes = Bytes::from(bytes.as_slice());
 		assert_eq!(bytes.as_slice(), bytes.as_slice());
 		assert_eq!(bytes.len(), 256);
-		assert_eq!(bytes.remaining_len(), 256);
+		assert_eq!(bytes.remaining().len(), 256);
 
 		let to_read: Vec<u8> = (0..10).collect();
 		assert_eq!(to_read.as_slice(), bytes.read(10));
-		assert_eq!(bytes.remaining_len(), 256 - 10);
+		assert_eq!(bytes.remaining().len(), 256 - 10);
 
 		assert_eq!(10u8, bytes.read_u8());
 
 		// peek
 		let to_peek: Vec<u8> = (11..=20).collect();
-		assert_eq!(to_peek.as_slice(), bytes.peek(10));
+		assert_eq!(to_peek.as_slice(), bytes.peek(10).unwrap());
 
 		bytes.seek(255);
 		assert_eq!(255u8, bytes.read_u8());
