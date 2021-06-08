@@ -1,7 +1,7 @@
 
 //! A small and easy crate to mutate or read u8 slices.
 //!
-//! Reads or writes on any number using the byte order "big-endian".
+//! Reads or writes any number using the byte order "big-endian".
 //!
 //! ## Read a slice
 //!
