@@ -71,6 +71,10 @@ where T: AsRef<[u8]> {
 }
 
 impl<'a> BytesSeek for Cursor<&'a [u8]> {
+	fn position(&self) -> usize {
+		self.position
+	}
+
 	/// Sets the internal position.
 	/// 
 	/// ## Panics
@@ -104,6 +108,10 @@ impl<'a> BytesWrite for Cursor<&'a mut [u8]> {
 }
 
 impl<'a> BytesSeek for Cursor<&'a mut [u8]> {
+	fn position(&self) -> usize {
+		self.position
+	}
+
 	/// Sets the internal position.
 	/// 
 	/// ## Panics
@@ -157,6 +165,66 @@ impl BytesWrite for Cursor<Vec<u8>> {
 }
 
 impl BytesSeek for Cursor<Vec<u8>> {
+	fn position(&self) -> usize {
+		self.position
+	}
+
+	/// Sets the internal position, allocating more space
+	/// if the position is bigger than the `Vec`.
+	fn seek(&mut self, pos: usize) {
+		self.position = pos;
+		let n_len = self.position + 1;
+		if self.inner.len() < n_len {
+			self.inner.resize(n_len, 0u8);
+		}
+	}
+}
+
+impl BytesWrite for Cursor<&mut Vec<u8>> {
+
+	fn as_mut(&mut self) -> &mut [u8] {
+		&mut self.inner
+	}
+
+	fn as_bytes(&self) -> Bytes<'_> {
+		Bytes::new(0, &self.inner)
+	}
+
+	/// Returns the remaining mutable slice.
+	/// 
+	/// If an empty slice is returned, this does not mean
+	/// you can't write anymore.
+	fn remaining_mut(&mut self) -> &mut [u8] {
+		&mut self.inner[self.position..]
+	}
+
+	/// Write a slice. Allocates more space if the slice is
+	/// bigger than the `Vec`.
+	fn write(&mut self, slice: &[u8]) {
+		// if has enough space
+		if slice.len() <= self.remaining_mut().len() {
+			self.remaining_mut()[..slice.len()].copy_from_slice(slice);
+			self.position += slice.len();
+			return;
+		}
+
+		// not enough space
+		let rem = self.remaining_mut().len();
+		if rem > 0 {
+			self.remaining_mut().copy_from_slice(&slice[..rem]);
+		}
+
+		self.inner.extend_from_slice(&slice[rem..]);
+		self.position += slice.len();
+	}
+
+}
+
+impl BytesSeek for Cursor<&mut Vec<u8>> {
+	fn position(&self) -> usize {
+		self.position
+	}
+
 	/// Sets the internal position, allocating more space
 	/// if the position is bigger than the `Vec`.
 	fn seek(&mut self, pos: usize) {

@@ -25,6 +25,11 @@ impl<'a> Bytes<'a> {
 		Self { inner: cursor }
 	}
 
+	/// Returns the inner slice with the original reference.
+	pub fn inner(&self) -> &'a [u8] {
+		*self.inner.inner()
+	}
+
 }
 
 impl BytesRead for Bytes<'_> {
@@ -53,6 +58,11 @@ impl BytesRead for Bytes<'_> {
 }
 
 impl BytesSeek for Bytes<'_> {
+	/// Returns the internal position.
+	fn position(&self) -> usize {
+		self.inner.position()
+	}
+
 	/// Sets the internal position.
 	/// 
 	/// ## Panics

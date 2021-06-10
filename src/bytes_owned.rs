@@ -113,6 +113,11 @@ impl BytesWrite for BytesOwned {
 }
 
 impl BytesSeek for BytesOwned {
+	/// Returns the internal position.
+	fn position(&self) -> usize {
+		self.inner.position()
+	}
+
 	/// Sets the internal position, allocating more space
 	/// if the position is bigger than the `Vec`.
 	fn seek(&mut self, pos: usize) {

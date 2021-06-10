@@ -33,6 +33,9 @@
 mod cursor;
 pub use cursor::Cursor;
 
+mod offset_cursor;
+pub use offset_cursor::OffsetCursor;
+
 mod bytes;
 pub use bytes::Bytes;
 

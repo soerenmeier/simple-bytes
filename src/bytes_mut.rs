@@ -73,6 +73,11 @@ impl BytesWrite for BytesMut<'_> {
 }
 
 impl BytesSeek for BytesMut<'_> {
+	/// Returns the internal position.
+	fn position(&self) -> usize {
+		self.inner.position()
+	}
+
 	/// Sets the internal position.
 	/// 
 	/// ## Panics
