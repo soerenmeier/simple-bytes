@@ -124,6 +124,44 @@ impl<'a> BytesSeek for Cursor<&'a mut [u8]> {
 }
 
 
+impl<const L: usize> BytesWrite for Cursor<[u8; L]> {
+
+	fn as_mut(&mut self) -> &mut [u8] {
+		&mut self.inner
+	}
+
+	fn as_bytes(&self) -> Bytes<'_> {
+		Bytes::new(0, &self.inner)
+	}
+
+	fn remaining_mut(&mut self) -> &mut [u8] {
+		&mut self.inner[self.position..]
+	}
+
+	fn write(&mut self, slice: &[u8]) {
+		self.remaining_mut()[..slice.len()].copy_from_slice(slice);
+		self.position += slice.len();
+	}
+
+}
+
+impl<const L: usize> BytesSeek for Cursor<[u8; L]> {
+	fn position(&self) -> usize {
+		self.position
+	}
+
+	/// Sets the internal position.
+	/// 
+	/// ## Panics
+	/// If the position exceeds the slice.
+	fn seek(&mut self, pos: usize) {
+		let len = self.inner.len();
+		assert!(self.position + len > pos);
+		self.position = pos;
+	}
+}
+
+
 impl BytesWrite for Cursor<Vec<u8>> {
 
 	fn as_mut(&mut self) -> &mut [u8] {
