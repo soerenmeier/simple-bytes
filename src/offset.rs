@@ -1,16 +1,31 @@
 
 use crate::{BytesRead, BytesWrite, BytesSeek, Bytes};
 
-/// A Cursor which holds a specific offset.
+/// A struct which holds a specific offset for any BytesRead,
+/// BytesWrite or BytesSeek implementation.
+///
+/// ## Example
+/// ```
+/// # use simple_bytes::{Offset, BytesOwned, BytesRead, BytesWrite, BytesSeek};
+/// let mut offset = Offset::new(BytesOwned::from(vec![1, 2, 3, 4]), 2);
+/// assert_eq!(offset.as_slice(), &[3, 4]);
+/// assert_eq!(offset.remaining(), &[3, 4]);
+/// offset.write_u8(5);
+/// assert_eq!(offset.as_slice(), &[5, 4]);
+/// assert_eq!(offset.remaining(), &[4]);
+/// offset.seek(2);
+/// offset.write_u8(5);
+/// assert_eq!(offset.as_slice(), &[5, 4, 5]);
+/// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct OffsetCursor<T> {
+pub struct Offset<T> {
 	// the offset gets applied to the inner
 	// position
 	offset: usize,
 	inner: T
 }
 
-impl<T> OffsetCursor<T> {
+impl<T> Offset<T> {
 
 	/// Creates a new Cursor.
 	///
@@ -51,7 +66,7 @@ impl<T> OffsetCursor<T> {
 
 }
 
-impl<T> BytesRead for OffsetCursor<T>
+impl<T> BytesRead for Offset<T>
 where T: BytesRead {
 
 	#[inline]
@@ -74,7 +89,7 @@ where T: BytesRead {
 
 }
 
-impl<T> BytesSeek for OffsetCursor<T>
+impl<T> BytesSeek for Offset<T>
 where T: BytesSeek {
 	/// Returns the internal position.
 	fn position(&self) -> usize {
@@ -90,7 +105,7 @@ where T: BytesSeek {
 	}
 }
 
-impl<T> BytesWrite for OffsetCursor<T>
+impl<T> BytesWrite for Offset<T>
 where T: BytesWrite {
 
 	fn as_mut(&mut self) -> &mut [u8] {
@@ -123,7 +138,7 @@ mod tests {
 	fn write() {
 
 		let cursor = Cursor::new(vec![1, 2, 3, 4]);
-		let mut offset_cursor = OffsetCursor::new(cursor, 2);
+		let mut offset_cursor = Offset::new(cursor, 2);
 		assert_eq!(offset_cursor.remaining_mut().len(), 2);
 		offset_cursor.write(&[1]);
 		assert_eq!(offset_cursor.remaining_mut().len(), 1);
@@ -139,7 +154,7 @@ mod tests {
 	fn read() {
 
 		let cursor = Cursor::new(vec![1, 2, 3, 4]);
-		let mut offset_cursor = OffsetCursor::new(cursor, 2);
+		let mut offset_cursor = Offset::new(cursor, 2);
 		assert_eq!(offset_cursor.position(), 0);
 		offset_cursor.seek(1);
 		assert_eq!(offset_cursor.position(), 1);

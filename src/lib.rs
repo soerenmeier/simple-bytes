@@ -33,8 +33,8 @@
 mod cursor;
 pub use cursor::Cursor;
 
-mod offset_cursor;
-pub use offset_cursor::OffsetCursor;
+mod offset;
+pub use offset::Offset;
 
 mod bytes;
 pub use bytes::Bytes;
