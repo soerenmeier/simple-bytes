@@ -47,6 +47,11 @@ impl<T> Offset<T> {
 		self.offset = offset;
 	}
 
+	/// Returns the current offset.
+	pub fn offset(&self) -> usize {
+		self.offset
+	}
+
 	/// Returns the inner value as a reference.
 	pub fn inner(&self) -> &T {
 		&self.inner
