@@ -104,6 +104,24 @@ mod tests {
 
 		bytes.seek(255);
 		assert_eq!(255u8, bytes.read_u8());
+
+		assert_eq!(bytes.position(), 256);
+		bytes.seek(256);
+	}
+
+	#[test]
+	fn test_empty() {
+		let mut bytes = Bytes::from(&[][..]);
+		assert_eq!(bytes.as_slice(), &[]);
+		assert_eq!(bytes.len(), 0);
+		bytes.seek(0);
+	}
+
+	#[test]
+	#[should_panic]
+	fn test_seek_empty() {
+		let mut bytes = Bytes::from(&[][..]);
+		bytes.seek(1);
 	}
 
 	#[test]
@@ -116,6 +134,16 @@ mod tests {
 		bytes.seek(100);
 
 		let _ = bytes.read_u8();
+	}
+
+	#[test]
+	#[should_panic]
+	fn seek_out_of_bound() {
+
+		let bytes = [0u8; 100];
+		let mut bytes = Bytes::from(&bytes[..]);
+
+		bytes.seek(101);
 	}
 
 }

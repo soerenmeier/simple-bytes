@@ -81,7 +81,7 @@ impl<'a> BytesSeek for Cursor<&'a [u8]> {
 	/// If the position exceeds the slice.
 	fn seek(&mut self, pos: usize) {
 		let len = self.inner.len();
-		assert!(self.position + len > pos);
+		assert!(self.position + len >= pos);
 		self.position = pos;
 	}
 }
@@ -118,7 +118,7 @@ impl<'a> BytesSeek for Cursor<&'a mut [u8]> {
 	/// If the position exceeds the slice.
 	fn seek(&mut self, pos: usize) {
 		let len = self.inner.len();
-		assert!(self.position + len > pos);
+		assert!(self.position + len >= pos);
 		self.position = pos;
 	}
 }
@@ -156,7 +156,7 @@ impl<const L: usize> BytesSeek for Cursor<[u8; L]> {
 	/// If the position exceeds the slice.
 	fn seek(&mut self, pos: usize) {
 		let len = self.inner.len();
-		assert!(self.position + len > pos);
+		assert!(self.position + len >= pos);
 		self.position = pos;
 	}
 }
@@ -211,7 +211,7 @@ impl BytesSeek for Cursor<Vec<u8>> {
 	/// if the position is bigger than the `Vec`.
 	fn seek(&mut self, pos: usize) {
 		self.position = pos;
-		let n_len = self.position + 1;
+		let n_len = self.position;
 		if self.inner.len() < n_len {
 			self.inner.resize(n_len, 0u8);
 		}
@@ -267,7 +267,7 @@ impl BytesSeek for Cursor<&mut Vec<u8>> {
 	/// if the position is bigger than the `Vec`.
 	fn seek(&mut self, pos: usize) {
 		self.position = pos;
-		let n_len = self.position + 1;
+		let n_len = self.position;
 		if self.inner.len() < n_len {
 			self.inner.resize(n_len, 0u8);
 		}

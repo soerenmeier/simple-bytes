@@ -170,8 +170,9 @@ mod tests {
 
 		// seek
 		bytes.seek(99);
-		assert_eq!(bytes.len(), 100);
+		assert_eq!(bytes.len(), 99);
 		// should now write to the 99 byte // this is the last byte
+		// this will resize
 		bytes.write_u8(5u8);
 		assert_eq!(bytes.as_mut()[99], 5u8);
 		assert_eq!(bytes.len(), 100);
@@ -182,26 +183,40 @@ mod tests {
 	fn read() {
 		use crate::BytesRead;
 
-		let bytes: Vec<u8> = (0..=255).collect();
+		let bytes: Vec<u8> = (1..=255).collect();
 		let mut bytes: BytesOwned = bytes.into();
 
 		assert_eq!(bytes.as_slice(), bytes.as_slice());
-		assert_eq!(bytes.len(), 256);
-		assert_eq!(bytes.remaining().len(), 256);
+		assert_eq!(bytes.len(), 255);
+		assert_eq!(bytes.remaining().len(), 255);
 
-		let to_read: Vec<u8> = (0..10).collect();
+		let to_read: Vec<u8> = (1..=10).collect();
 		assert_eq!(to_read.as_slice(), bytes.read(10));
-		assert_eq!(bytes.remaining().len(), 256 - 10);
+		assert_eq!(bytes.remaining().len(), 255 - 10);
 
-		assert_eq!(10u8, bytes.read_u8());
+		assert_eq!(11u8, bytes.read_u8());
 
 		// peek
-		let to_peek: Vec<u8> = (11..=20).collect();
-		assert_eq!(to_peek.as_slice(), bytes.peek(10).unwrap());
+		let to_peek: Vec<u8> = (12..=20).collect();
+		assert_eq!(to_peek.as_slice(), bytes.peek(to_peek.len()).unwrap());
 
 		bytes.seek(255);
+		assert_eq!(bytes.remaining().len(), 0);
+		bytes.seek(254);
 		assert_eq!(255u8, bytes.read_u8());
 
+		bytes.seek(256);// should have allocated one byte
+		bytes.seek(255);
+		assert_eq!(0u8, bytes.read_u8());
+	}
+
+	#[test]
+	fn test_empty() {
+		let mut bytes = BytesOwned::new();
+		assert_eq!(bytes.as_slice(), &[]);
+		assert_eq!(bytes.len(), 0);
+		bytes.seek(0);
+		assert_eq!(bytes.len(), 0);
 	}
 
 }

@@ -132,6 +132,14 @@ mod tests {
 	}
 
 	#[test]
+	fn test_empty() {
+		let mut bytes = BytesMut::from(&mut [][..]);
+		assert_eq!(bytes.as_slice(), &[]);
+		assert_eq!(bytes.len(), 0);
+		bytes.seek(0);
+	}
+
+	#[test]
 	#[should_panic]
 	fn write_overflow() {
 
