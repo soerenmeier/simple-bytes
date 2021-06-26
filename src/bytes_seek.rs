@@ -8,4 +8,12 @@ pub trait BytesSeek {
 	/// Sets the internal position.
 	fn seek(&mut self, pos: usize);
 
+	/// Advances the internal position.
+	/// 
+	/// ## Panic
+	/// May panic depending on the `BytesSeek::seek` implementation.
+	fn advance(&mut self, adv: usize) {
+		self.seek(self.position() + adv);
+	}
+
 }
