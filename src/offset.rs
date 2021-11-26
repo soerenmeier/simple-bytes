@@ -125,7 +125,7 @@ where T: BytesWrite {
 		self.inner.remaining_mut()
 	}
 
-	fn write(&mut self, slice: &[u8]) {
+	fn write(&mut self, slice: impl AsRef<[u8]>) {
 		self.inner.write(slice)
 	}
 

@@ -100,7 +100,8 @@ impl<'a> BytesWrite for Cursor<&'a mut [u8]> {
 		&mut self.inner[self.position..]
 	}
 
-	fn write(&mut self, slice: &[u8]) {
+	fn write(&mut self, slice: impl AsRef<[u8]>) {
+		let slice = slice.as_ref();
 		self.remaining_mut()[..slice.len()].copy_from_slice(slice);
 		self.position += slice.len();
 	}
@@ -138,7 +139,8 @@ impl<const L: usize> BytesWrite for Cursor<[u8; L]> {
 		&mut self.inner[self.position..]
 	}
 
-	fn write(&mut self, slice: &[u8]) {
+	fn write(&mut self, slice: impl AsRef<[u8]>) {
+		let slice = slice.as_ref();
 		self.remaining_mut()[..slice.len()].copy_from_slice(slice);
 		self.position += slice.len();
 	}
@@ -182,7 +184,8 @@ impl BytesWrite for Cursor<Vec<u8>> {
 
 	/// Write a slice. Allocates more space if the slice is
 	/// bigger than the `Vec`.
-	fn write(&mut self, slice: &[u8]) {
+	fn write(&mut self, slice: impl AsRef<[u8]>) {
+		let slice = slice.as_ref();
 		// if has enough space
 		if slice.len() <= self.remaining_mut().len() {
 			self.remaining_mut()[..slice.len()].copy_from_slice(slice);
@@ -238,7 +241,8 @@ impl BytesWrite for Cursor<&mut Vec<u8>> {
 
 	/// Write a slice. Allocates more space if the slice is
 	/// bigger than the `Vec`.
-	fn write(&mut self, slice: &[u8]) {
+	fn write(&mut self, slice: impl AsRef<[u8]>) {
+		let slice = slice.as_ref();
 		// if has enough space
 		if slice.len() <= self.remaining_mut().len() {
 			self.remaining_mut()[..slice.len()].copy_from_slice(slice);

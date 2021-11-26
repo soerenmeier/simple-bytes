@@ -38,7 +38,7 @@ pub trait BytesWrite {
 	/// 
 	/// ## Panics
 	/// If there aren't enough remaining bytes left.
-	fn write(&mut self, slice: &[u8]);
+	fn write(&mut self, slice: impl AsRef<[u8]>);
 
 	write_fn!(write_u8, u8);
 	write_fn!(write_u16, u16);
