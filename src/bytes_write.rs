@@ -10,12 +10,31 @@ macro_rules! write_fn {
 		#[inline]
 		#[doc = "Writes an `"]
 		#[doc = $type_str]
-		#[doc = "`."]
+		#[doc = "` in big-endian."]
 		/// 
 		/// ## Panics
 		/// If there aren't enough remaining bytes left.
 		fn $name(&mut self, num: $type) {
 			let bytes = num.to_be_bytes();
+			self.write(&bytes);
+		}
+	}
+}
+
+macro_rules! write_le_fn {
+	($name:ident, $type:ident) => (
+		write_le_fn!($name, $type, stringify!($type));
+	);
+	($name:ident, $type:ident, $type_str:expr) => {
+		#[inline]
+		#[doc = "Writes an `"]
+		#[doc = $type_str]
+		#[doc = "` in little-endian."]
+		/// 
+		/// ## Panics
+		/// If there aren't enough remaining bytes left.
+		fn $name(&mut self, num: $type) {
+			let bytes = num.to_le_bytes();
 			self.write(&bytes);
 		}
 	}
@@ -54,5 +73,20 @@ pub trait BytesWrite {
 
 	write_fn!(write_f32, f32);
 	write_fn!(write_f64, f64);
+
+	write_le_fn!(write_le_u8, u8);
+	write_le_fn!(write_le_u16, u16);
+	write_le_fn!(write_le_u32, u32);
+	write_le_fn!(write_le_u64, u64);
+	write_le_fn!(write_le_u128, u128);
+
+	write_le_fn!(write_le_i8, i8);
+	write_le_fn!(write_le_i16, i16);
+	write_le_fn!(write_le_i32, i32);
+	write_le_fn!(write_le_i64, i64);
+	write_le_fn!(write_le_i128, i128);
+
+	write_le_fn!(write_le_f32, f32);
+	write_le_fn!(write_le_f64, f64);
 
 }

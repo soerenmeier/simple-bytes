@@ -8,7 +8,7 @@ macro_rules! read_fn {
 		#[inline]
 		#[doc = "Reads "]
 		#[doc = $num_str]
-		#[doc = " bytes converting them into an `"]
+		#[doc = " bytes in big-endian converting them into an `"]
 		#[doc = $type_str]
 		#[doc = "`."]
 		///
@@ -19,6 +19,30 @@ macro_rules! read_fn {
 			bytes.copy_from_slice(self.read($num));
 
 			$type::from_be_bytes(bytes)
+		}
+	}
+}
+
+macro_rules! read_le_fn {
+	($name:ident, $type:ident, $num:expr) => (
+		read_le_fn!($name, $type, $num, stringify!($type), stringify!($num));
+	);
+	($name:ident, $type:ident, $num:expr,
+	$type_str:expr, $num_str:expr) => {
+		#[inline]
+		#[doc = "Reads "]
+		#[doc = $num_str]
+		#[doc = " bytes in little-endian converting them into an `"]
+		#[doc = $type_str]
+		#[doc = "`."]
+		///
+		/// ## Panics
+		/// If there aren't enough bytes left.
+		fn $name(&mut self) -> $type {
+			let mut bytes = [0u8; $num];
+			bytes.copy_from_slice(self.read($num));
+
+			$type::from_le_bytes(bytes)
 		}
 	}
 }
@@ -59,6 +83,21 @@ pub trait BytesRead {
 
 	read_fn!(read_f32, f32, 4);
 	read_fn!(read_f64, f64, 8);
+
+	read_le_fn!(read_le_u8, u8, 1);
+	read_le_fn!(read_le_u16, u16, 2);
+	read_le_fn!(read_le_u32, u32, 4);
+	read_le_fn!(read_le_u64, u64, 8);
+	read_le_fn!(read_le_u128, u128, 16);
+
+	read_le_fn!(read_le_i8, i8, 1);
+	read_le_fn!(read_le_i16, i16, 2);
+	read_le_fn!(read_le_i32, i32, 4);
+	read_le_fn!(read_le_i64, i64, 8);
+	read_le_fn!(read_le_i128, i128, 16);
+
+	read_le_fn!(read_le_f32, f32, 4);
+	read_le_fn!(read_le_f64, f64, 8);
 
 	/// Tries to read a given length without updating
 	/// the internal position. Returns `None` if there are not enought

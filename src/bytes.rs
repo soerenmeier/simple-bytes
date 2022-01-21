@@ -110,6 +110,21 @@ mod tests {
 	}
 
 	#[test]
+	fn read_le() {
+
+		let b = u16::MAX - 20;
+		println!("be: {:?}", b.to_be_bytes());
+		let bytes = b.to_le_bytes();
+		println!("le: {:?}", bytes);
+		let mut bytes = Bytes::from(bytes.as_slice());
+		assert_ne!(bytes.read_u16(), b);
+		bytes.seek(0);
+		println!("buffer: {:?}", bytes.as_slice());
+		assert_eq!(bytes.read_le_u16(), b);
+
+	}
+
+	#[test]
 	fn test_empty() {
 		let mut bytes = Bytes::from(&[][..]);
 		assert_eq!(bytes.as_slice(), &[]);

@@ -132,6 +132,16 @@ mod tests {
 	}
 
 	#[test]
+	fn write_le() {
+		let b = u16::MAX - 20;
+		let le = b.to_le_bytes();
+		let mut bytes = [0u8; 2];
+		let mut bytes = BytesMut::from(bytes.as_mut());
+		bytes.write_le_u16(b);
+		assert_eq!(bytes.as_slice(), le);
+	}
+
+	#[test]
 	fn test_empty() {
 		let mut bytes = BytesMut::from(&mut [][..]);
 		assert_eq!(bytes.as_slice(), &[]);
