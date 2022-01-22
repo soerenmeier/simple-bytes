@@ -1,5 +1,5 @@
 
-use crate::{BytesRead, BytesSeek, Cursor};
+use crate::{BytesRead, BytesReadRef, BytesSeek, Cursor};
 
 /// A slice wrapper that implements BytesRead.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -27,7 +27,7 @@ impl<'a> Bytes<'a> {
 
 	/// Returns the inner slice with the original reference.
 	pub fn inner(&self) -> &'a [u8] {
-		*self.inner.inner()
+		self.as_slice_ref()
 	}
 
 }
@@ -42,7 +42,7 @@ impl BytesRead for Bytes<'_> {
 
 	#[inline]
 	fn remaining(&self) -> &[u8] {
-		 self.inner.remaining()
+		self.inner.remaining()
 	}
 
 	#[inline]
@@ -53,6 +53,35 @@ impl BytesRead for Bytes<'_> {
 	#[inline]
 	fn peek(&self, len: usize) -> Option<&[u8]> {
 		self.inner.peek(len)
+	}
+
+}
+
+impl<'a> BytesReadRef<'a> for Bytes<'a> {
+
+	// returns the full slice
+	#[inline]
+	fn as_slice_ref(&self) -> &'a [u8] {
+		*self.inner.inner()
+	}
+
+	#[inline]
+	fn remaining_ref(&self) -> &'a [u8] {
+		&self.as_slice_ref()[self.position()..]
+	}
+
+	#[inline]
+	fn read_ref(&mut self, len: usize) -> &'a [u8] {
+		let slice = &self.as_slice_ref()[self.position()..][..len];
+		// the previous line did not panic
+		// so let's increase our position
+		self.seek(self.position() + len);
+		slice
+	}
+
+	#[inline]
+	fn peek_ref(&self, len: usize) -> Option<&'a [u8]> {
+		self.remaining_ref().get(..len)
 	}
 
 }

@@ -71,6 +71,7 @@ where T: AsRef<[u8]> {
 }
 
 impl<'a> BytesSeek for Cursor<&'a [u8]> {
+	#[inline]
 	fn position(&self) -> usize {
 		self.position
 	}

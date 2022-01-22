@@ -46,7 +46,7 @@ mod bytes_owned;
 pub use bytes_owned::BytesOwned;
 
 mod bytes_read;
-pub use bytes_read::BytesRead;
+pub use bytes_read::{BytesRead, BytesReadRef};
 
 mod bytes_write;
 pub use bytes_write::BytesWrite;

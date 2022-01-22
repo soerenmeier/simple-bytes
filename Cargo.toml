@@ -1,7 +1,7 @@
 [package]
 name = "simple-bytes"
 description = "A small and easy crate to mutate or read u8 slices"
-version = "0.2.8"
+version = "0.2.9"
 authors = ["Sören Meier <soeren@s-me.ch>"]
 repository = "https://github.com/soerenmeier/simple-bytes"
 edition = "2018"

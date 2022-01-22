@@ -105,3 +105,32 @@ pub trait BytesRead {
 	fn peek(&self, len: usize) -> Option<&[u8]>;
 
 }
+
+/// Read bytes while keeping the original reference.
+/// ```
+/// use simple_bytes::{Bytes, BytesRead, BytesReadRef};
+///
+/// let mut bytes = Bytes::from("hey".as_ref());
+/// let h = bytes.read_u8();
+/// let ey: &'static [u8] = bytes.remaining_ref();
+/// ```
+pub trait BytesReadRef<'a>: BytesRead {
+
+	/// Returns the entire slice.
+	fn as_slice_ref(&self) -> &'a [u8];
+
+	/// Returns all remaining bytes.
+	fn remaining_ref(&self) -> &'a [u8];
+
+	/// Reads a given length of bytes.
+	/// 
+	/// ## Panics
+	/// If len exceeds `self.remaining().len()`.
+	fn read_ref(&mut self, len: usize) -> &'a [u8];
+
+	/// Tries to read a given length without updating
+	/// the internal position. Returns `None` if there are not enought
+	/// bytes remaining.
+	fn peek_ref(&self, len: usize) -> Option<&'a [u8]>;
+
+}
