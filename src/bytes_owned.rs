@@ -40,6 +40,14 @@ impl BytesOwned {
 		Self { inner: cursor }
 	}
 
+	/// Resizes the len to `new_len` allocates some more space if needed.
+	pub fn resize(&mut self, new_len: usize) {
+		self.inner.inner_mut().resize(new_len, 0);
+		if self.inner.position() > new_len {
+			self.inner.seek(new_len);
+		}
+	}
+
 	/// Returns the underlying Vec mutably.
 	/// 
 	/// Removing items can lead to panics while
@@ -245,4 +253,19 @@ mod tests {
 		assert_eq!(bytes.len(), 0);
 	}
 
+	#[test]
+	fn resize() {
+		let mut bytes = BytesOwned::new();
+		bytes.resize(4);
+		assert_eq!(bytes.as_slice(), &[0, 0, 0, 0]);
+		assert_eq!(bytes.position(), 0);
+		bytes.write_u8(2);
+		assert_eq!(bytes.as_slice(), &[2, 0, 0, 0]);
+		bytes.seek(4);
+		bytes.write_u8(2);
+		assert_eq!(bytes.as_slice(), &[2, 0, 0, 0, 2]);
+		bytes.resize(4);
+		assert_eq!(bytes.as_slice(), &[2, 0, 0, 0]);
+		assert!(bytes.try_read(1).is_err());
+	}
 }
