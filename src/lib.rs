@@ -30,6 +30,8 @@
 //! assert_eq!(3, slice.remaining().len());
 //! ```
 
+mod util;
+
 mod cursor;
 pub use cursor::Cursor;
 
@@ -46,10 +48,10 @@ mod bytes_owned;
 pub use bytes_owned::BytesOwned;
 
 mod bytes_read;
-pub use bytes_read::{BytesRead, BytesReadRef};
+pub use bytes_read::{BytesRead, ReadError, BytesReadRef};
 
 mod bytes_write;
-pub use bytes_write::BytesWrite;
+pub use bytes_write::{BytesWrite, WriteError};
 
 mod bytes_seek;
-pub use bytes_seek::BytesSeek;
+pub use bytes_seek::{BytesSeek, SeekError};

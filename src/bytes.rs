@@ -1,5 +1,7 @@
 
-use crate::{BytesRead, BytesReadRef, BytesSeek, Cursor};
+use crate::{BytesRead, ReadError, BytesReadRef, BytesSeek, SeekError, Cursor};
+
+use std::io;
 
 /// A slice wrapper that implements BytesRead.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -8,7 +10,6 @@ pub struct Bytes<'a> {
 }
 
 impl<'a> Bytes<'a> {
-
 	/// You should probably use:
 	///
 	/// ```
@@ -29,11 +30,9 @@ impl<'a> Bytes<'a> {
 	pub fn inner(&self) -> &'a [u8] {
 		self.as_slice_ref()
 	}
-
 }
 
 impl BytesRead for Bytes<'_> {
-
 	// returns the full slice
 	#[inline]
 	fn as_slice(&self) -> &[u8] {
@@ -46,15 +45,20 @@ impl BytesRead for Bytes<'_> {
 	}
 
 	#[inline]
-	fn read(&mut self, len: usize) -> &[u8] {
-		self.inner.read(len)
+	fn try_read(&mut self, len: usize) -> Result<&[u8], ReadError> {
+		self.inner.try_read(len)
 	}
 
 	#[inline]
 	fn peek(&self, len: usize) -> Option<&[u8]> {
 		self.inner.peek(len)
 	}
+}
 
+impl io::Read for Bytes<'_> {
+	fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+		io::Read::read(&mut self.inner, buf)
+	}
 }
 
 impl<'a> BytesReadRef<'a> for Bytes<'a> {
@@ -71,12 +75,14 @@ impl<'a> BytesReadRef<'a> for Bytes<'a> {
 	}
 
 	#[inline]
-	fn read_ref(&mut self, len: usize) -> &'a [u8] {
-		let slice = &self.as_slice_ref()[self.position()..][..len];
+	fn try_read_ref(&mut self, len: usize) -> Result<&'a [u8], ReadError> {
+		let slice = &self.as_slice_ref()[self.position()..].get(..len)
+			.ok_or(ReadError)?;
 		// the previous line did not panic
 		// so let's increase our position
 		self.seek(self.position() + len);
-		slice
+
+		Ok(slice)
 	}
 
 	#[inline]
@@ -94,10 +100,16 @@ impl BytesSeek for Bytes<'_> {
 
 	/// Sets the internal position.
 	/// 
-	/// ## Panics
+	/// ## Fails
 	/// If the position exceeds the slice.
-	fn seek(&mut self, pos: usize) {
-		self.inner.seek(pos)
+	fn try_seek(&mut self, pos: usize) -> Result<(), SeekError> {
+		self.inner.try_seek(pos)
+	}
+}
+
+impl io::Seek for Bytes<'_> {
+	fn seek(&mut self, pos: io::SeekFrom) -> io::Result<u64> {
+		io::Seek::seek(&mut self.inner, pos)
 	}
 }
 

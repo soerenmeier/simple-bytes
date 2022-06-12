@@ -1,5 +1,12 @@
 
-use crate::{Bytes, Cursor, BytesRead, BytesWrite, BytesSeek};
+use crate::{
+	Bytes, Cursor,
+	BytesRead, ReadError,
+	BytesWrite, WriteError,
+	BytesSeek, SeekError
+};
+
+use std::io;
 
 /// A mutable slice wrapper that implements BytesWrite
 #[derive(Debug, PartialEq, Eq, Hash)]
@@ -38,14 +45,20 @@ impl BytesRead for BytesMut<'_> {
 		self.inner.remaining()
 	}
 
-	fn read(&mut self, len: usize) -> &[u8] {
-		self.inner.read(len)
+	fn try_read(&mut self, len: usize) -> Result<&[u8], ReadError> {
+		self.inner.try_read(len)
 	}
 
 	fn peek(&self, len: usize) -> Option<&[u8]> {
 		self.inner.peek(len)
 	}
 
+}
+
+impl io::Read for BytesMut<'_> {
+	fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+		io::Read::read(&mut self.inner, buf)
+	}
 }
 
 impl BytesWrite for BytesMut<'_> {
@@ -66,10 +79,20 @@ impl BytesWrite for BytesMut<'_> {
 	}
 
 	#[inline]
-	fn write(&mut self, slice: impl AsRef<[u8]>) {
-		self.inner.write(slice)
+	fn try_write(&mut self, slice: impl AsRef<[u8]>) -> Result<(), WriteError> {
+		self.inner.try_write(slice)
 	}
 
+}
+
+impl io::Write for BytesMut<'_> {
+	fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+		io::Write::write(&mut self.inner, buf)
+	}
+
+	fn flush(&mut self) -> io::Result<()> {
+		Ok(())
+	}
 }
 
 impl BytesSeek for BytesMut<'_> {
@@ -80,10 +103,16 @@ impl BytesSeek for BytesMut<'_> {
 
 	/// Sets the internal position.
 	/// 
-	/// ## Panics
+	/// ## Fails
 	/// If the position exceeds the slice.
-	fn seek(&mut self, pos: usize) {
-		self.inner.seek(pos)
+	fn try_seek(&mut self, pos: usize) -> Result<(), SeekError> {
+		self.inner.try_seek(pos)
+	}
+}
+
+impl io::Seek for BytesMut<'_> {
+	fn seek(&mut self, pos: io::SeekFrom) -> io::Result<u64> {
+		io::Seek::seek(&mut self.inner, pos)
 	}
 }
 

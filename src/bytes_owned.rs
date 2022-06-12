@@ -1,11 +1,15 @@
-
-
 //! # Note
 //!	Internally there exists only one position is saved
 //! So if you read and write you should keep this in mind
 
+use crate::{
+	Bytes, Cursor,
+	BytesRead, ReadError,
+	BytesWrite, WriteError,
+	BytesSeek, SeekError
+};
 
-use crate::{Bytes, Cursor, BytesRead, BytesWrite, BytesSeek};
+use std::io;
 
 /// A Vec wrapper that implements BytesWrite and BytesRead
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -71,8 +75,8 @@ impl BytesRead for BytesOwned {
 	}
 
 	#[inline]
-	fn read(&mut self, len: usize) -> &[u8] {
-		self.inner.read(len)
+	fn try_read(&mut self, len: usize) -> Result<&[u8], ReadError> {
+		self.inner.try_read(len)
 	}
 
 	#[inline]
@@ -80,6 +84,12 @@ impl BytesRead for BytesOwned {
 		self.inner.peek(len)
 	}
 
+}
+
+impl io::Read for BytesOwned {
+	fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+		io::Read::read(&mut self.inner, buf)
+	}
 }
 
 impl BytesWrite for BytesOwned {
@@ -106,10 +116,20 @@ impl BytesWrite for BytesOwned {
 	/// Writes a slice. Allocates more space if the slice is
 	/// bigger than the `Vec`.
 	#[inline]
-	fn write(&mut self, slice: impl AsRef<[u8]>) {
-		self.inner.write(slice)
+	fn try_write(&mut self, slice: impl AsRef<[u8]>) -> Result<(), WriteError> {
+		self.inner.try_write(slice)
 	}
 
+}
+
+impl io::Write for BytesOwned {
+	fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+		io::Write::write(&mut self.inner, buf)
+	}
+
+	fn flush(&mut self) -> io::Result<()> {
+		Ok(())
+	}
 }
 
 impl BytesSeek for BytesOwned {
@@ -120,8 +140,14 @@ impl BytesSeek for BytesOwned {
 
 	/// Sets the internal position, allocating more space
 	/// if the position is bigger than the `Vec`.
-	fn seek(&mut self, pos: usize) {
-		self.inner.seek(pos)
+	fn try_seek(&mut self, pos: usize) -> Result<(), SeekError> {
+		self.inner.try_seek(pos)
+	}
+}
+
+impl io::Seek for BytesOwned {
+	fn seek(&mut self, pos: io::SeekFrom) -> io::Result<u64> {
+		io::Seek::seek(&mut self.inner, pos)
 	}
 }
 

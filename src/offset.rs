@@ -1,5 +1,7 @@
 
-use crate::{BytesRead, BytesWrite, BytesSeek, Bytes};
+use crate::{
+	BytesRead, ReadError, BytesWrite, WriteError, BytesSeek, SeekError, Bytes
+};
 
 /// A struct which holds a specific offset for any BytesRead,
 /// BytesWrite or BytesSeek implementation.
@@ -73,7 +75,6 @@ impl<T> Offset<T> {
 
 impl<T> BytesRead for Offset<T>
 where T: BytesRead {
-
 	#[inline]
 	fn as_slice(&self) -> &[u8] {
 		&self.inner.as_slice()[self.offset..]
@@ -84,14 +85,13 @@ where T: BytesRead {
 		self.inner.remaining()
 	}
 
-	fn read(&mut self, len: usize) -> &[u8] {
-		self.inner.read(len)
+	fn try_read(&mut self, len: usize) -> Result<&[u8], ReadError> {
+		self.inner.try_read(len)
 	}
 
 	fn peek(&self, len: usize) -> Option<&[u8]> {
 		self.inner.peek(len)
 	}
-
 }
 
 impl<T> BytesSeek for Offset<T>
@@ -105,14 +105,13 @@ where T: BytesSeek {
 	/// 
 	/// ## Panics
 	/// Depending on the implementation.
-	fn seek(&mut self, pos: usize) {
-		self.inner.seek(self.offset + pos)
+	fn try_seek(&mut self, pos: usize) -> Result<(), SeekError> {
+		self.inner.try_seek(self.offset + pos)
 	}
 }
 
 impl<T> BytesWrite for Offset<T>
 where T: BytesWrite {
-
 	fn as_mut(&mut self) -> &mut [u8] {
 		&mut self.inner.as_mut()[self.offset..]
 	}
@@ -125,10 +124,9 @@ where T: BytesWrite {
 		self.inner.remaining_mut()
 	}
 
-	fn write(&mut self, slice: impl AsRef<[u8]>) {
-		self.inner.write(slice)
+	fn try_write(&mut self, slice: impl AsRef<[u8]>) -> Result<(), WriteError> {
+		self.inner.try_write(slice)
 	}
-
 }
 
 

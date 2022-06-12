@@ -1,14 +1,10 @@
 [package]
 name = "simple-bytes"
 description = "A small and easy crate to mutate or read u8 slices"
-version = "0.2.9"
+version = "0.2.10"
 authors = ["Sören Meier <soeren@s-me.ch>"]
 repository = "https://github.com/soerenmeier/simple-bytes"
-edition = "2018"
+edition = "2021"
 license = "MIT OR Apache-2.0"
 keywords = ["bytes", "read", "write", "io"]
 categories = ["network-programming", "data-structures"]
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
