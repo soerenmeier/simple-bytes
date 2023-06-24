@@ -26,6 +26,7 @@ pub trait BytesSeek {
 	fn try_seek(&mut self, pos: usize) -> Result<(), SeekError>;
 
 	/// Sets the internal position.
+	#[track_caller]
 	fn seek(&mut self, pos: usize) {
 		self.try_seek(pos).expect("failed to seek");
 	}
@@ -39,6 +40,7 @@ pub trait BytesSeek {
 	/// 
 	/// ## Panic
 	/// May panic depending on the `BytesSeek::seek` implementation.
+	#[track_caller]
 	fn advance(&mut self, adv: usize) {
 		self.try_advance(adv).expect("failed to advance")
 	}

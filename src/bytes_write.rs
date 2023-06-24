@@ -17,6 +17,7 @@ macro_rules! write_fn {
 		}
 
 		#[inline]
+		#[track_caller]
 		#[doc = "Writes an `"]
 		#[doc = $type_str]
 		#[doc = "` in big-endian."]
@@ -43,6 +44,7 @@ macro_rules! write_le_fn {
 		}
 
 		#[inline]
+		#[track_caller]
 		#[doc = "Writes an `"]
 		#[doc = $type_str]
 		#[doc = "` in little-endian."]
@@ -88,6 +90,7 @@ pub trait BytesWrite {
 	/// 
 	/// ## Panics
 	/// If there aren't enough remaining bytes left.
+	#[track_caller]
 	fn write(&mut self, slice: impl AsRef<[u8]>) {
 		self.try_write(slice).expect("failed to write")
 	}

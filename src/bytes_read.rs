@@ -24,6 +24,7 @@ macro_rules! read_fn {
 		}
 
 		#[inline]
+		#[track_caller]
 		#[doc = "Reads "]
 		#[doc = $num_str]
 		#[doc = " bytes in big-endian converting them into an `"]
@@ -61,6 +62,7 @@ macro_rules! read_le_fn {
 		}
 
 		#[inline]
+		#[track_caller]
 		#[doc = "Reads "]
 		#[doc = $num_str]
 		#[doc = " bytes in little-endian converting them into an `"]
@@ -113,6 +115,7 @@ pub trait BytesRead {
 	/// 
 	/// ## Panics
 	/// If len exceeds `self.remaining().len()`.
+	#[track_caller]
 	fn read(&mut self, len: usize) -> &[u8] {
 		self.try_read(len).expect("failed to read")
 	}
@@ -180,6 +183,7 @@ pub trait BytesReadRef<'a>: BytesRead {
 	/// 
 	/// ## Panics
 	/// If len exceeds `self.remaining().len()`.
+	#[track_caller]
 	fn read_ref(&mut self, len: usize) -> &'a [u8] {
 		self.try_read_ref(len).expect("failed to read")
 	}
