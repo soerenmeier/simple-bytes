@@ -1,5 +1,5 @@
 //! # Note
-//!	Internally there exists only one position is saved
+//!	Internally there exists only one position
 //! So if you read and write you should keep this in mind
 
 use crate::{

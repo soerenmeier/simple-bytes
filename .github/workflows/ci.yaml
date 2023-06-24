@@ -1,4 +1,3 @@
-
 name: CI
 
 on:
@@ -9,15 +8,23 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  RUSTFLAGS: -Dwarnings
+  # change manually in matrix
+  rust_min: 1.56.0
 
 jobs:
   build_and_test:
-
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rust:
+          - stable
+          - nightly
+          - 1.56.0
 
     steps:
-      - uses: actions/checkout@v2
-      - name: Build
-        run: cargo build
-      - name: Run tests
-        run: cargo test
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
+      - run: cargo test

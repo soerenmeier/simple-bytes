@@ -47,6 +47,9 @@ pub use bytes_mut::BytesMut;
 mod bytes_owned;
 pub use bytes_owned::BytesOwned;
 
+mod bytes_array;
+pub use bytes_array::BytesArray;
+
 mod bytes_read;
 pub use bytes_read::{BytesRead, ReadError, BytesReadRef};
 
