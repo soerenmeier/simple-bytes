@@ -18,7 +18,6 @@ impl std::error::Error for SeekError {}
 
 /// Sets the internal position for writing or reading.
 pub trait BytesSeek {
-
 	/// Returns the internal position.
 	fn position(&self) -> usize;
 
@@ -44,5 +43,16 @@ pub trait BytesSeek {
 	fn advance(&mut self, adv: usize) {
 		self.try_advance(adv).expect("failed to advance")
 	}
+}
 
+impl<S: BytesSeek> BytesSeek for &mut S {
+	#[inline]
+	fn position(&self) -> usize {
+		(**self).position()
+	}
+
+	#[inline]
+	fn try_seek(&mut self, pos: usize) -> Result<(), SeekError> {
+		(**self).try_seek(pos)
+	}
 }

@@ -92,7 +92,6 @@ impl std::error::Error for ReadError {}
 
 /// Read bytes or numbers.
 pub trait BytesRead {
-
 	/// Returns the entire slice.
 	fn as_slice(&self) -> &[u8];
 
@@ -154,7 +153,28 @@ pub trait BytesRead {
 	/// the internal position. Returns `None` if there are not enought
 	/// bytes remaining.
 	fn peek(&self, len: usize) -> Option<&[u8]>;
+}
 
+impl<R: BytesRead> BytesRead for &mut R {
+	#[inline]
+	fn as_slice(&self) -> &[u8] {
+		(**self).as_slice()
+	}
+
+	#[inline]
+	fn remaining(&self) -> &[u8] {
+		(**self).remaining()
+	}
+
+	#[inline]
+	fn try_read(&mut self, len: usize) -> Result<&[u8], ReadError> {
+		(**self).try_read(len)
+	}
+
+	#[inline]
+	fn peek(&self, len: usize) -> Option<&[u8]> {
+		(**self).peek(len)
+	}
 }
 
 /// Read bytes while keeping the original reference.
@@ -166,7 +186,6 @@ pub trait BytesRead {
 /// let ey: &'static [u8] = bytes.remaining_ref();
 /// ```
 pub trait BytesReadRef<'a>: BytesRead {
-
 	/// Returns the entire slice.
 	fn as_slice_ref(&self) -> &'a [u8];
 
@@ -192,5 +211,26 @@ pub trait BytesReadRef<'a>: BytesRead {
 	/// the internal position. Returns `None` if there are not enought
 	/// bytes remaining.
 	fn peek_ref(&self, len: usize) -> Option<&'a [u8]>;
+}
 
+impl<'a, R: BytesReadRef<'a>> BytesReadRef<'a> for &mut R {
+	#[inline]
+	fn as_slice_ref(&self) -> &'a [u8] {
+		(**self).as_slice_ref()
+	}
+
+	#[inline]
+	fn remaining_ref(&self) -> &'a [u8] {
+		(**self).remaining_ref()
+	}
+
+	#[inline]
+	fn try_read_ref(&mut self, len: usize) -> Result<&'a [u8], ReadError> {
+		(**self).try_read_ref(len)
+	}
+
+	#[inline]
+	fn peek_ref(&self, len: usize) -> Option<&'a [u8]> {
+		(**self).peek_ref(len)
+	}
 }

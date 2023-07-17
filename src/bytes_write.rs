@@ -72,7 +72,6 @@ impl std::error::Error for WriteError {}
 
 /// Write bytes or numbers.
 pub trait BytesWrite {
-
 	/// Returns the entire slice mutably.
 	fn as_mut(&mut self) -> &mut [u8];
 
@@ -124,5 +123,26 @@ pub trait BytesWrite {
 
 	write_le_fn!(write_le_f32, try_write_le_f32, f32);
 	write_le_fn!(write_le_f64, try_write_le_f64, f64);
+}
 
+impl<W: BytesWrite> BytesWrite for &mut W {
+	#[inline]
+	fn as_mut(&mut self) -> &mut [u8] {
+		(**self).as_mut()
+	}
+
+	#[inline]
+	fn as_bytes(&self) -> Bytes<'_> {
+		(**self).as_bytes()
+	}
+
+	#[inline]
+	fn remaining_mut(&mut self) -> &mut [u8] {
+		(**self).remaining_mut()
+	}
+
+	#[inline]
+	fn try_write(&mut self, slice: impl AsRef<[u8]>) -> Result<(), WriteError> {
+		(**self).try_write(slice)
+	}
 }
